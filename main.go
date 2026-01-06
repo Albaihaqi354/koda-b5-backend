@@ -1,12 +1,16 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
+
+type User struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 func main() {
 	app := gin.Default()
@@ -14,29 +18,36 @@ func main() {
 	app.POST("/auth/register", func(ctx *gin.Context) {
 		var register User
 		if err := ctx.ShouldBindJSON(&register); err != nil {
-			log.Println(err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "Error",
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid request body",
 			})
 			return
 		}
 
-		IsValid(register.Email)
+		if !isValidEmail(register.Email) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "Email tidak valid",
+			})
+			return
+		}
+
+		if len(register.Password) < 6 {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "Password minimal 6 karakter",
+			})
+			return
+		}
 
 		ctx.JSON(http.StatusOK, gin.H{
-			"data": register,
+			"message": "Register berhasil",
+			"data":    register,
 		})
 	})
 
 	app.Run("localhost:5000")
 }
 
-func IsValid(v string) {
-	matched := regexp.MustCompile(`!/^[^\s@]+@[^\s@]+\.[^\s@]+$/`)
-	return matched.MatchString(v)
-}
-
-type User struct {
-	Email    string `form:"Email"`
-	Password string `form:"password"`
+func isValidEmail(email string) bool {
+	regex := regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+	return regex.MatchString(email)
 }
