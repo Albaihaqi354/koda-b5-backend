@@ -16,3 +16,11 @@ func FindUser(email, password string) *dto.User {
 	}
 	return nil
 }
+
+func LoginUser(email, password string) (*dto.User, string) {
+	user := FindUser(email, password)
+	if user == nil {
+		return nil, "Email atau password salah"
+	}
+	return user, ""
+}

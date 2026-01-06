@@ -54,10 +54,10 @@ func (a *AuthController) PostAuthLogin(ctx *gin.Context) {
 		return
 	}
 
-	user := service.FindUser(login.Email, login.Password)
-	if user == nil {
+	user, errMessage := service.LoginUser(login.Email, login.Password)
+	if errMessage != "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "Email atau password salah",
+			"error": errMessage,
 		})
 		return
 	}
