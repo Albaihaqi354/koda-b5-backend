@@ -9,4 +9,5 @@ func Init(app *gin.Engine) {
 	authControler := controller.NewAuthController()
 
 	app.POST("/auth/register", authControler.PostAuthRegister)
+	app.POST("/auth/login", authControler.PostAuthLogin)
 }

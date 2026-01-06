@@ -23,22 +23,47 @@ func (a *AuthController) PostAuthRegister(ctx *gin.Context) {
 		return
 	}
 
-	if !service.IsValidEmail(register.Email) {
+	if errMessage := service.ValidateAuthRegister(register.Email, register.Password); errMessage != "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "Email tidak valid",
+			"error": errMessage,
 		})
 		return
 	}
 
-	if len(register.Password) < 6 {
+	service.SaveUser(register)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Register berhasil",
+		"data":    register,
+	})
+}
+
+func (a *AuthController) PostAuthLogin(ctx *gin.Context) {
+	var login dto.User
+	if err := ctx.ShouldBindJSON(&login); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "Password minimal 6 karakter",
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	if errMessage := service.ValidateAuthRegister(login.Email, login.Password); errMessage != "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": errMessage,
+		})
+		return
+	}
+
+	user := service.FindUser(login.Email, login.Password)
+	if user == nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Email atau password salah",
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Register berhasil",
-		"data":    register,
+		"message": "Login berhasil",
+		"data":    user,
 	})
 }
